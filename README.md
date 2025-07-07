@@ -1,4 +1,4 @@
-#**suForce** – su brute-forcer by **AzK-os**
+# **suForce** – su brute-forcer by **AzK-os**
 
 **suForce** es una herramienta de fuerza bruta enfocada en contraseñas de usuarios locales del sistema Linux mediante el binario `su`. Diseñada para pruebas de seguridad en entornos controlados, esta utilidad te permite automatizar ataques de diccionario y detectar credenciales débiles en equipos con acceso físico o remoto.
 
